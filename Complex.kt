@@ -5,50 +5,39 @@ import kotlin.math.atan
 import kotlin.math.sqrt
 
 open class Complex {
-    var r: Double
-    var i: Double
+    var re: Double
+    var im: Double
 
-    constructor(r: Number, i: Imagi) {
-        this.r = r.toDouble()
-        this.i = i.toReal
+    constructor(r: Number = 0, i: Imagi = i(0)) {
+        this.re = r.toDouble()
+        this.im = i.toReal()
     }
 
-    constructor(r: Number, i: Number) {
-        this.r = r.toDouble()
-        this.i = i.toDouble()
-    }
-
-    companion object {
-        val O = c(0.0, 0.0)
-        val I = c(0.0, 1.0)
-        @Suppress("DIVISION_BY_ZERO")
-        val NULL = c(0.0/0.0, 0.0)
+    constructor(r: Number = 0, i: Number = 0) {
+        this.re = r.toDouble()
+        this.im = i.toDouble()
     }
 
     fun mod(): Double {
-        return sqrt(r*r + i*i)
+        return sqrt(re*re + im*im)
     }
 
     fun arg(): Double {
-        if (r > 0) return if (i>=0) atan(i/r)
-        else 2 * PI + atan(i/r)
-        if (r < 0) return PI + atan(i/r)
-        if (i > 0) return PI / 2
-        if (i < 0) return 3 * PI / 2
+        if (re > 0) return if (im>=0) atan(im/re)
+        else 2 * PI + atan(im/re)
+        if (re < 0) return PI + atan(im/re)
+        if (im > 0) return PI / 2
+        if (im < 0) return 3 * PI / 2
         @Suppress("DIVISION_BY_ZERO")
         return 0.0/0.0
     }
 
     fun cjg(): Complex {
-        return c(r, -i)
-    }
-
-    fun isNull(): Boolean {
-        return this == NULL
+        return c(re, -im)
     }
 
     override fun toString(): String {
-        return (if (r != 0.0) "$r" + (if(i>0) "+" else "") else "") +
-                if(i == 0.0) "" else "${i(i)}"
+        return (if (re != 0.0) "$re" + (if(im>0) "+" else "") else "") +
+                if(im == 0.0) "" else "${i(im)}"
     }
 }
