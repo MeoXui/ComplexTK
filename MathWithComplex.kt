@@ -7,6 +7,7 @@ import kotlin.math.round
 import kotlin.math.sin
 
 val I = i()
+val O = c(0,0)
 
 fun i(value: Number = 1): Imagi {
     return Imagi(value)
@@ -25,11 +26,11 @@ operator fun Number.plus(i: Imagi): Complex {
 }
 
 operator fun Number.plus(c: Complex): Complex {
-    return c(this.toDouble() + c.re, c.im)
+    return this.toDouble() + c.re + c.im
 }
 
 operator fun Imagi.plus(n: Number): Complex {
-    return c(n, this)
+    return n + this
 }
 
 operator fun Imagi.plus(i: Imagi): Imagi {
@@ -37,20 +38,19 @@ operator fun Imagi.plus(i: Imagi): Imagi {
 }
 
 operator fun Imagi.plus(c: Complex): Complex {
-    return c(c.re, toReal() + c.im)
+    return c.re + (this + c.im)
 }
 
 operator fun Complex.plus(n: Number): Complex {
-    val d = n.toDouble()
-    return c(re+d, im)
+    return re + n.toDouble() + im
 }
 
 operator fun Complex.plus(i: Imagi): Complex {
-    return c(re, this.im+i.toReal())
+    return re + (im + i)
 }
 
 operator fun Complex.plus(c: Complex): Complex {
-    return c(re+c.re, im+c.im)
+    return re + c.re + (im + c.im)
 }
 
 operator fun Number.minus(i: Imagi): Complex {
@@ -58,11 +58,11 @@ operator fun Number.minus(i: Imagi): Complex {
 }
 
 operator fun Number.minus(c: Complex): Complex {
-    return c(this.toDouble() - c.re, -c.im)
+    return toDouble() - c.re - c.im
 }
 
 operator fun Imagi.minus(n: Number): Complex {
-    return c(-n.toDouble(), this)
+    return -n.toDouble() + this
 }
 
 operator fun Imagi.minus(i: Imagi): Imagi {
@@ -70,20 +70,19 @@ operator fun Imagi.minus(i: Imagi): Imagi {
 }
 
 operator fun Imagi.minus(c: Complex): Complex {
-    return c(-c.re, toReal() - c.im)
+    return -c.re + (this - c.im)
 }
 
 operator fun Complex.minus(n: Number): Complex {
-    val d = n.toDouble()
-    return c(re-d, im)
+    return re - n.toDouble() + im
 }
 
 operator fun Complex.minus(i: Imagi): Complex {
-    return c(re, this.im-i.toReal())
+    return re + (im - i)
 }
 
 operator fun Complex.minus(c: Complex): Complex {
-    return c(re-c.re, im-c.im)
+    return re - c.re + (im - c.im)
 }
 
 operator fun Imagi.unaryMinus(): Imagi {
@@ -91,7 +90,7 @@ operator fun Imagi.unaryMinus(): Imagi {
 }
 
 operator fun Complex.unaryMinus(): Complex {
-    return c(-re, -im)
+    return -re - im
 }
 
 operator fun Number.times(i: Imagi): Imagi {
@@ -99,7 +98,7 @@ operator fun Number.times(i: Imagi): Imagi {
 }
 
 operator fun Number.times(c: Complex): Complex {
-    return c(this.toDouble() * c.re, this.toDouble() * c.im)
+    return this.toDouble() * c.re + this.toDouble() * c.im
 }
 
 operator fun Imagi.times(n: Number): Imagi {
@@ -111,26 +110,25 @@ operator fun Imagi.times(i: Imagi): Double {
 }
 
 operator fun Imagi.times(c: Complex): Complex {
-    return c(-toReal() * c.im, toReal() * c.re)
+    return this * c.im + this * c.re
 }
 
 operator fun Complex.times(n: Number): Complex {
-    val d = n.toDouble()
-    return c(re*d, im*d)
+    return re * n.toDouble() + im * n.toDouble()
 }
 
 operator fun Complex.times(i: Imagi): Complex {
-    return c(-this.im*i.toReal(), re*i)
+    return im * i + re * i
 }
 
 operator fun Complex.times(c: Complex): Complex {
-    val re = re*c.re - im*c.im
-    val im = this.re *c.im + im*c.re
-    return c(re, im)
+    val r = re * c.re + im * c.im
+    val i = re * c.im + im * c.re
+    return r + i
 }
 
 operator fun Number.div(i: Imagi): Imagi {
-    return i(-toDouble() / i.toReal())
+    return i(toDouble() / -i.toReal())
 }
 
 operator fun Number.div(c: Complex): Complex {
@@ -150,12 +148,11 @@ operator fun Imagi.div(c: Complex): Complex {
 }
 
 operator fun Complex.div(n: Number): Complex {
-    val d = n.toDouble()
-    return c(re/d, im/d)
+    return re / n.toDouble() + im / n.toDouble()
 }
 
 operator fun Complex.div(i: Imagi): Complex {
-    return c(this.im/i.toReal(), -re/i.toReal())
+    return im / i + re / i
 }
 
 operator fun Complex.div(c: Complex): Complex {
@@ -163,12 +160,17 @@ operator fun Complex.div(c: Complex): Complex {
 }
 
 fun rec(c: Complex): Complex {
-    val r = c.re / (c.re*c.re + c.im*c.im)
-    val i = -c.im / (c.re*c.re + c.im*c.im)
-    return c(r, i)
+    return c.cjg() / (c.re * c.re - c.im * c.im)
 }
 
 //
+
+fun Imagi.pow(n: Number): APC {
+    val d = n.toDouble()
+    val k0 = if (toReal() != 0.0) toReal().pow(d).arg(PI / 2 * d * if (toReal() > 0) 1 else 3)
+    else O
+    return APC(k0, d)
+}
 
 fun Complex.pow(n: Number): APC {
     val d = n.toDouble()
@@ -183,16 +185,16 @@ fun sqrt(n: Number): Any {
 }
 
 fun sqrt(c: Complex): APC {
-    return c.pow(1.0/2.0)
+    return c.pow(1.0 / 2.0)
 }
 
 fun cbrt(c: Complex): APC {
-    return c.pow(1.0/3.0)
+    return c.pow(1.0 / 3.0)
 }
 
-class APC(private var k0: Complex, private var exp: Double): Complex(k0.re, k0.im) {
+class APC(private var k0: Complex, private var exp: Double) : Complex(k0.re, k0.im) {
     operator fun get(k: Int): Complex {
-        return if(k == 0) k0
+        return if (k0 == O || k == 0) k0
         else k0.mod().arg(k0.arg() + (exp % 1.0) * k)
     }
 }

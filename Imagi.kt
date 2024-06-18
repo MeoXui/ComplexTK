@@ -5,8 +5,21 @@ open class Imagi(private val value: Number = 0) {
         return value.toDouble()
     }
 
-    fun toComp(): Complex {
+    fun toComplex(): Complex {
         return c(0.0, this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Imagi
+
+        return value == other.value
+    }
+
+    override fun hashCode(): Int {
+        return value.hashCode()
     }
 
     override fun toString(): String {
