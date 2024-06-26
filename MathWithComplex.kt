@@ -1,13 +1,16 @@
 package fpoly.huynkph38086.complex
 
+import kotlin.math.E
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.round
 import kotlin.math.sin
 
 val I = i()
-val O = c(0,0)
+val O = c(0, 0)
 
 fun i(value: Number = 1): Imagi {
     return Imagi(value)
@@ -163,19 +166,46 @@ fun rec(c: Complex): Complex {
     return c.cjg() / (c.re * c.re - c.im * c.im)
 }
 
-//
+//fun Number.pow(n: Number): MultivaluedResult {
+//    val d = n.toDouble()
+//    val k0 = if (toDouble() > 0) E.pow(ln(toDouble())*d) else if (toDouble() < 0) E.pow(ln(toDouble())*d)
+//    return
+//}
+// a^b = E^(ln(a)*b + 2*k*PI*b*i)
+// (-a)^b = E^(ln(a)*b + PI*b*i + 2*k*PI*b*i)
 
-fun Imagi.pow(n: Number): APC {
+fun Number.pow(i: Imagi): MultivaluedResult {
+    val d = i.toReal()
+    val k0 = (if (toDouble() > 0) 1 else if (toDouble() < 0) 1 / E.pow(PI * d) else 0)
+        .arg(ln(abs(toDouble())) * d)
+    return MR(k0, d, 2)
+}
+// a = E^(ln(a) + 2*k*PI*i)
+// a^(di) = E^(ln(a)*d*i - 2*k*PI*d)
+//        = E^(ln(a)*d*i) / E^(2*k*PI*d)
+//        = cos(ln(a)*d) + sin(ln(a)*d)i / E^(2*k*PI*d)
+// k0 = cos(ln(a)*d) + sin(ln(a)*d)i = 1 arg(ln(a)*d)
+
+// -a = E^(ln(a) + PI*i + 2*k*PI*i)
+// (-a)^(di) = E^(ln(a)*d*i - PI*d - 2*k*k*PI*d)
+//        = E^(ln(a)*d*i) / E^(PI*d) / E^(2*k*PI*d)
+//        = cos(ln(a)*d) + sin(ln(a)*d)i / E^(PI*d) / E^((2*k+1)*PI*d)
+// k0 = cos(ln(a)*d) + sin(ln(a)*d)i / E^(PI*d) = (1/E^(PI*d)) arg(ln(a)*d)
+
+//fun Number.pow(c: Complex): MultivaluedResult {
+//    return pow(c.re)
+//}
+
+fun Imagi.pow(n: Number): MultivaluedResult {
     val d = n.toDouble()
-    val k0 = if (toReal() != 0.0) toReal().pow(d).arg(PI / 2 * d * if (toReal() > 0) 1 else 3)
-    else O
-    return APC(k0, d)
+    val k0 = if (toComplex() != O) toReal().pow(d).arg(PI / 2 * d) else O
+    return MR(k0, d, 1)
 }
 
-fun Complex.pow(n: Number): APC {
+fun Complex.pow(n: Number): MultivaluedResult {
     val d = n.toDouble()
-    val k0 = mod().pow(d).arg(arg() * d)
-    return APC(k0, d)
+    val k0 = if (this != O) mod().pow(d).arg(arg() * d) else O
+    return MR(k0, d, 1)
 }
 
 fun sqrt(n: Number): Any {
@@ -184,18 +214,28 @@ fun sqrt(n: Number): Any {
     else i(kotlin.math.sqrt(-d))
 }
 
-fun sqrt(c: Complex): APC {
+fun sqrt(c: Complex): MultivaluedResult {
     return c.pow(1.0 / 2.0)
 }
 
-fun cbrt(c: Complex): APC {
+fun cbrt(c: Complex): MultivaluedResult {
     return c.pow(1.0 / 3.0)
 }
 
-class APC(private var k0: Complex, private var exp: Double) : Complex(k0.re, k0.im) {
+fun MR(k0: Complex, exp: Double, mode: Int): MultivaluedResult {
+    return MultivaluedResult(k0, exp, mode)
+}
+
+class MultivaluedResult(private var k0: Complex, private var exp: Double, private val mode: Int) :
+    Complex(k0.re, k0.im) {
     operator fun get(k: Int): Complex {
-        return if (k0 == O || k == 0) k0
-        else k0.mod().arg(k0.arg() + (exp % 1.0) * k)
+        if (k0 == O || k == 0) return k0
+        return when (mode) {
+            0 -> k0*1//
+            1 -> mod().arg(arg() + (exp % 1.0) * k)
+            2 -> k0 / E.pow(2 * k * PI * exp)
+            else -> k0
+        }
     }
 }
 
@@ -203,11 +243,11 @@ fun Number.toComplex(): Complex {
     return this.arg(0.0)
 }
 
-fun Number.arg(arg: Double): Complex {
-    val x = if ((arg + PI / 2) % PI == 0.0) 0.0 else cos(arg)
-    val y = if (arg % PI == 0.0) 0.0 else sin(arg)
-    return roundf14(this.toDouble() * x) +
-            roundf14(this.toDouble() * y) * I
+fun Number.arg(arg: Number): Complex {
+    val x = if ((arg.toDouble() + PI / 2) % PI == 0.0) 0.0 else cos(arg.toDouble())
+    val y = if (arg.toDouble() % PI == 0.0) 0.0 else sin(arg.toDouble())
+    return roundf14(toDouble() * x) +
+            roundf14(toDouble() * y) * I
 }
 
 fun roundf14(d: Double): Double {
